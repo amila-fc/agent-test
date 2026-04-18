@@ -277,6 +277,9 @@ function App() {
           </div>
         )}
       </main>
+      <footer className="glass footer">
+        <p>&copy; {new Date().getFullYear()} AI Logistics Agent. Created by amilasilva88</p>
+      </footer>
     </div>
   );
 }

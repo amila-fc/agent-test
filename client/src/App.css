@@ -364,3 +364,15 @@ header h1 {
   font-size: 0.85rem;
   margin-top: 1rem;
 }
+
+.footer {
+  text-align: center;
+  padding: 1.5rem !important;
+  margin-top: 1rem;
+}
+
+.footer p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #94a3b8;
+}
