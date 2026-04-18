@@ -111,4 +111,22 @@ server {
    sudo nginx -t
    sudo systemctl restart nginx
    ```
-5. **SSL**: Run `sudo apt install certbot python3-certbot-nginx` then `sudo certbot --nginx` to get a free SSL certificate.
+### Step 5: "Running" the Application
+In **Droplet Mode**, you do not "start" the client like you do in development. Instead:
+
+1. **The Backend**: Is always running via **PM2** (Step 3).
+2. **The Frontend**: Is served by **Nginx** (Step 4). 
+
+Since you've updated your `.gitignore` to include the `dist` folder, you have two options after you `git pull` on your droplet:
+
+**Option A: Point Nginx to your repo (Quickest)**
+Update your Nginx config `root` to point directly to your repo folder:
+`root /root/agent-test/client/dist;`
+
+**Option B: Copy to Web Root (Recommended)**
+Copy the files to the standard Nginx directory:
+```bash
+sudo mkdir -p /var/www/html/logistics-agent
+sudo cp -r /root/agent-test/client/dist/* /var/www/html/logistics-agent/
+```
+Then make sure Nginx uses: `root /var/www/html/logistics-agent;`

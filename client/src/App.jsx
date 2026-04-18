@@ -100,7 +100,7 @@ function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(!!token);
   const [loginForm, setLoginForm] = useState({ username: '', password: '' });
 
-  const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+  const API_BASE = import.meta.env.VITE_API_BASE_URL || '.';
 
   const handleLogin = async (e) => {
     e.preventDefault();
