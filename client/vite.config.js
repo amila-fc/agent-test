@@ -7,5 +7,10 @@ export default defineConfig({
     proxy: {
       '/api': 'http://localhost:5000'
     }
+  },
+  build: {
+    sourcemap: false, // Disabling sourcemaps significantly speeds up builds
+    minify: 'esbuild', // Fast minification
+    reportCompressedSize: false // Saves time during build output reporting
   }
 })

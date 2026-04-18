@@ -9,12 +9,45 @@ require('dotenv').config();
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 const { S3Client, GetObjectCommand, DeleteObjectCommand } = require('@aws-sdk/client-s3');
 const multerS3 = require('multer-s3');
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
+const JWT_SECRET = process.env.JWT_SECRET || 'agent-secret-key-2026';
+const ADMIN_USER = process.env.ADMIN_USERNAME || 'cool';
+const ADMIN_PASS = process.env.ADMIN_PASSWORD || 'cool123';
+
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+
+// Auth Middleware
+const verifyToken = (req, res, next) => {
+    const token = req.headers['authorization']?.split(' ')[1];
+    if (!token) return res.status(401).json({ error: "Access Denied. No token provided." });
+
+    try {
+        const verified = jwt.verify(token, JWT_SECRET);
+        req.user = verified;
+        next();
+    } catch (err) {
+        res.status(400).json({ error: "Invalid Token" });
+    }
+};
+
+// Login Route
+app.post('/api/login', async (req, res) => {
+    const { username, password } = req.body;
+    
+    // Simple verification (In production, use a database)
+    if (username === ADMIN_USER && password === ADMIN_PASS) {
+        const token = jwt.sign({ username }, JWT_SECRET, { expiresIn: '24h' });
+        return res.json({ token });
+    }
+    
+    res.status(401).json({ error: "Invalid credentials" });
+});
 
 // S3/Spaces Client Configuration
 console.log('Initializing S3 Client with:', {
@@ -100,7 +133,7 @@ async function streamToBuffer(stream) {
     });
 }
 
-app.post('/api/extract', (req, res) => {
+app.post('/api/extract', verifyToken, (req, res) => {
     upload.single('file')(req, res, async (err) => {
         if (err) {
             console.error("Multer/S3 Upload Error:", err);
@@ -254,7 +287,7 @@ function renderTableInPDF(doc, items) {
 }
 
 
-app.post('/api/generate-pdf', (req, res) => {
+app.post('/api/generate-pdf', verifyToken, (req, res) => {
     const { details } = req.body;
     const doc = new PDFDocument({ 
         margin: 50,

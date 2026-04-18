@@ -96,7 +96,38 @@ function App() {
   const [extractedData, setExtractedData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState('');
+  const [token, setToken] = useState(localStorage.getItem('token') || '');
+  const [isLoggedIn, setIsLoggedIn] = useState(!!token);
+  const [loginForm, setLoginForm] = useState({ username: '', password: '' });
+
   const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const response = await axios.post(`${API_BASE}/api/login`, loginForm);
+      const { token } = response.data;
+      setToken(token);
+      localStorage.setItem('token', token);
+      setIsLoggedIn(true);
+      setStatus('Login successful!');
+    } catch (err) {
+      console.error(err);
+      setStatus('Invalid credentials');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleLogout = () => {
+    setToken('');
+    localStorage.removeItem('token');
+    setIsLoggedIn(false);
+    setFile(null);
+    setExtractedData(null);
+    setStatus('Logged out.');
+  };
 
   const handleFileChange = (e) => {
     setFile(e.target.files[0]);
@@ -112,7 +143,9 @@ function App() {
     formData.append('file', file);
 
     try {
-      const response = await axios.post(`${API_BASE}/api/extract`, formData);
+      const response = await axios.post(`${API_BASE}/api/extract`, formData, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       setExtractedData(response.data.details);
       setStatus('Details Extracted Successfully!');
     } catch (err) {
@@ -130,7 +163,8 @@ function App() {
     
     try {
       const response = await axios.post(`${API_BASE}/api/generate-pdf`, { details: extractedData }, {
-        responseType: 'blob'
+        responseType: 'blob',
+        headers: { Authorization: `Bearer ${token}` }
       });
       
       const url = window.URL.createObjectURL(new Blob([response.data]));
@@ -148,12 +182,53 @@ function App() {
     }
   };
 
+  if (!isLoggedIn) {
+    return (
+      <div className="container login-mode">
+        <header className="glass">
+          <h1>AI Logistics Agent</h1>
+          <p>Login to access the dashboard</p>
+        </header>
+        <main className="glass login-card">
+          <form onSubmit={handleLogin}>
+            <div className="input-group">
+              <label>Username</label>
+              <input 
+                type="text" 
+                value={loginForm.username} 
+                onChange={(e) => setLoginForm({...loginForm, username: e.target.value})}
+                required 
+              />
+            </div>
+            <div className="input-group">
+              <label>Password</label>
+              <input 
+                type="password" 
+                value={loginForm.password} 
+                onChange={(e) => setLoginForm({...loginForm, password: e.target.value})}
+                required 
+              />
+            </div>
+            <button type="submit" disabled={loading} className="primary-btn full-width">
+              {loading ? <Loader2 className="spinning" /> : 'Login'}
+            </button>
+            {status && <p className="status-msg error">{status}</p>}
+          </form>
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div className="container">
       <header className="glass">
-        <h1>AI Logistics Agent</h1>
+        <div className="header-top">
+          <h1>AI Logistics Agent</h1>
+          <button onClick={handleLogout} className="logout-btn mini">Logout</button>
+        </div>
         <p>Extract details from freight documents instantly</p>
       </header>
+      {/* Rest of the dashboard... */}
 
       <main className="glass">
         <div className="upload-section">

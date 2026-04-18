@@ -74,6 +74,41 @@ pm2 startup
 ### Step 4: Nginx & SSL
 1. Install Nginx: `sudo apt install nginx`.
 2. Configure Nginx: `sudo nano /etc/nginx/sites-available/default`.
-   - Update the `location /` to point to your frontend build.
-   - Add a `location /api` to proxy to `http://localhost:5000`.
-3. **SSL**: Run `sudo apt install certbot python3-certbot-nginx` then `sudo certbot --nginx` to get a free SSL certificate.
+3. Replace the contents of that file with the **Exact Configuration** below:
+
+```nginx
+server {
+    listen 80;
+    server_name 167.172.75.67;
+
+    # Frontend Static Files
+    root /var/www/html/logistics-agent;
+    index index.html;
+
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    # Backend API Proxy
+    location /api {
+        proxy_pass http://localhost:5000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
+        
+        # Increase timeouts for large file processing
+        proxy_read_timeout 300;
+        proxy_connect_timeout 300;
+        proxy_send_timeout 300;
+    }
+}
+```
+
+4. **Test & Restart**:
+   ```bash
+   sudo nginx -t
+   sudo systemctl restart nginx
+   ```
+5. **SSL**: Run `sudo apt install certbot python3-certbot-nginx` then `sudo certbot --nginx` to get a free SSL certificate.
