@@ -83,28 +83,59 @@ const upload = multer({
 
 async function extractDetailsWithLLM(fileBuffer, fileMimeType) {
     // Switching to 2.5-flash as requested by user
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-3.1-flash-lite-preview" });
     
     const fileData = fileBuffer.toString("base64");
     
     const prompt = `
-        You are a shipping logistics expert. Extract the details from the attached shipping document and return them in a JSON object format.
+ You are a shipping logistics expert. Extract the details from the attached shipping document and return them in a JSON object format.
         
         Organize the JSON into the following sections as top-level keys:
         1. "Cargo & Packaging Details" (Should be an ARRAY of objects if multiple items exist)
         2. "Transport & Shipment Details"
         3. "Commercial & Legal Details"
         4. "Other Shipping Remarks"
+        5. "BL Additional Data points"
         
-        Fields to extract for EACH item in the "Cargo & Packaging Details" array:
+        "Cargo & Packaging Details" section include the following Fields to extract for EACH item:
         - "Package type"
         - "Product No"
         - "Item descriptions"
         - "Quantity"
         - "Net weight"
         - "Gross weight"
-        - Transport: Mode, Vessel name, Voyage, ETD, ETA, Container/Seal numbers.
-        - Commercial: Incoterms, Shipper name/address, Consignee name/address, Notify party.
+
+        
+        "Transport & Shipment Details" section include the following
+         - "Transport Mode"
+         - "Vessel Name"
+         - "Voyage"
+         - "Container/Seal numbers"
+         - "ETA"
+         - "ETD"
+
+        "Commercial & Legal Details" section include the following: 
+         - "Incoterms"
+         - "Shipper name"
+         - "Shipper address"
+         - "Consignee name"
+         - "Consignee address"
+         - "Notify party"
+         - "Notify party address"
+         - "Sales Order No"
+         - "Sales Order Date"
+         - "Purchase Order No"
+         - "Currency"
+ 
+        "Other Shipping Remarks" section include the following:
+         - "Shipping instructions"
+         - "Pallet type"  
+         - "Additional charges"
+         - "Hazardous goods"
+
+        "BL Additional Data points" section include
+         - "cargo description": Go through all the items in the description and provide a common category/generic description to identify the type of cargo
+        - "Packaging form       
         
         Return ONLY the JSON object.
     `;
