@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { Upload, FileText, Download, CheckCircle, Loader2 } from 'lucide-react';
+import { Upload, FileText, Download, CheckCircle, Loader2, FilePlus } from 'lucide-react';
 import { jsPDF } from 'jspdf';
 import './App.css';
+import BLForm from './BLForm';
 
 const ValueRenderer = ({ value }) => {
   if (value && typeof value === 'object' && !Array.isArray(value)) {
@@ -99,6 +100,7 @@ function App() {
   const [token, setToken] = useState(localStorage.getItem('token') || '');
   const [isLoggedIn, setIsLoggedIn] = useState(!!token);
   const [loginForm, setLoginForm] = useState({ username: '', password: '' });
+  const [view, setView] = useState('dashboard'); // 'dashboard' or 'bl-form'
 
   const API_BASE = import.meta.env.VITE_API_BASE_URL || '';
 
@@ -127,17 +129,20 @@ function App() {
     setFile(null);
     setExtractedData(null);
     setStatus('Logged out.');
+    setView('dashboard');
   };
 
   const handleFileChange = (e) => {
     setFile(e.target.files[0]);
     setExtractedData(null);
+    localStorage.removeItem('bl_draft'); // Clear draft when new file selected
   };
 
   const handleUpload = async () => {
     if (!file) return;
     setLoading(true);
     setStatus('Uploading and Extracting...');
+    localStorage.removeItem('bl_draft'); // Clear draft before new extraction
     
     const formData = new FormData();
     formData.append('file', file);
@@ -219,6 +224,21 @@ function App() {
     );
   }
 
+  if (view === 'bl-form') {
+    return (
+      <div className="container">
+        <header className="glass">
+          <div className="header-top">
+            <h1>Bill of Lading Generator</h1>
+            <button onClick={handleLogout} className="logout-btn mini">Logout</button>
+          </div>
+          <p>Finalize and print your shipping documentation</p>
+        </header>
+        <BLForm data={extractedData} onBack={() => setView('dashboard')} />
+      </div>
+    );
+  }
+
   return (
     <div className="container">
       <header className="glass">
@@ -228,7 +248,6 @@ function App() {
         </div>
         <p>Extract details from freight documents instantly</p>
       </header>
-      {/* Rest of the dashboard... */}
 
       <main className="glass">
         <div className="upload-section">
@@ -252,9 +271,14 @@ function App() {
           <div className="results-section fading-in">
             <div className="results-header">
               <h2>Extracted Logistics Data</h2>
-              <button onClick={generatePDF} className="secondary-btn mini">
-                <Download size={18} /> Export PDF
-              </button>
+              <div className="action-group" style={{ display: 'flex', gap: '0.5rem' }}>
+                <button onClick={() => setView('bl-form')} className="primary-btn mini" style={{ width: 'auto' }}>
+                  <FilePlus size={18} /> Create BL
+                </button>
+                <button onClick={generatePDF} className="secondary-btn mini" style={{ marginTop: 0 }}>
+                  <Download size={18} /> Export PDF
+                </button>
+              </div>
             </div>
             
             <div className="sequential-sections">
@@ -285,3 +309,4 @@ function App() {
 }
 
 export default App;
+

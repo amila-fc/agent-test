@@ -135,7 +135,11 @@ async function extractDetailsWithLLM(fileBuffer, fileMimeType) {
 
         "BL Additional Data points" section include
          - "cargo description": Go through all the items in the description and provide a common category/generic description to identify the type of cargo
-        - "Packaging form       
+         - "Packaging form",
+         - "Total Gross Weight": Sum of all the gross weights kg
+         - "Total Net Weight": Sum of all the net weights kg
+        
+
         
         Return ONLY the JSON object.
     `;
