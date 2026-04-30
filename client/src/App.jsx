@@ -220,6 +220,9 @@ function App() {
             {status && <p className="status-msg error">{status}</p>}
           </form>
         </main>
+        <footer className="glass footer">
+          <p>&copy; {new Date().getFullYear()} AI Logistics Agent. Created by amilasilva88</p>
+        </footer>
       </div>
     );
   }
@@ -235,6 +238,9 @@ function App() {
           <p>Finalize and print your shipping documentation</p>
         </header>
         <BLForm data={extractedData} onBack={() => setView('dashboard')} />
+        <footer className="glass footer">
+          <p>&copy; {new Date().getFullYear()} AI Logistics Agent. Created by amilasilva88</p>
+        </footer>
       </div>
     );
   }

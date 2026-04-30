@@ -52,11 +52,27 @@ const BLForm = ({ data, onBack }) => {
       const weights = `${blData['Total Gross Weight'] || ''}\n${blData['Total Net Weight'] || ''}`.trim();
       const containers = transport['Container/Seal numbers'] || '';
 
+      // Auto-generate BL number if empty
+      let generatedBL = transport['Bill of Lading Number'] || '';
+      if (!generatedBL) {
+        const today = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+        let sequence = parseInt(localStorage.getItem('bl_sequence_no') || '0') + 1;
+        const lastDate = localStorage.getItem('bl_sequence_date');
+        
+        if (lastDate !== today) {
+          sequence = 1;
+        }
+        
+        generatedBL = `${today}-${sequence.toString().padStart(3, '0')}`;
+        localStorage.setItem('bl_sequence_no', sequence.toString());
+        localStorage.setItem('bl_sequence_date', today);
+      }
+
       const initialData = {
         shipper: shipperInfo,
         consignee: consigneeInfo,
         notifyParty: notifyInfo,
-        blNumber: transport['Bill of Lading Number'] || '',
+        blNumber: generatedBL,
         exportReference: remarks['Shipping instructions'] || '',
         vesselVoyage: `${transport['Vessel Name'] || ''} / ${transport['Voyage'] || ''}`.trim(),
         descriptionGoods: blData['cargo description'] || '',
